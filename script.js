@@ -1,7 +1,7 @@
 // ============================================
 // CONFIGURACIÓN DE MONGODB
 // ============================================
-const API_URL = 'https://juego-roan.vercel.app/api'; 
+const API_URL = 'https://juego-1jlp1gbcw-supervitecs-projects.vercel.app/api'; 
 
 // LISTA DE PARTICIPANTES
 const PARTICIPANTS = [
