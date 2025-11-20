@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎁 Amigo Secreto - Supervitec</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="animated-bg">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+    </div>
+
+    <div class="container">
+        <!-- Pantalla de Login -->
+        <div id="login-screen" class="screen active">
+            <div class="card login-box">
+                <div class="card-header">
+                    <div class="gift-icon">🎁</div>
+                    <h1 class="title">Amigo Secreto</h1>
+                    <p class="subtitle">¡Bienvenido a la magia navideña!</p>
+                </div>
+                <form id="login-form">
+                    <div class="input-wrapper">
+                        <label>📧 Correo Electrónico</label>
+                        <input type="email" id="email" placeholder="tu@email.com" required>
+                    </div>
+                    <div class="input-wrapper">
+                        <label>🔒 Contraseña</label>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <span>Iniciar Sesión</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </form>
+                <div id="login-error" class="error-message"></div>
+            </div>
+        </div>
+
+        <!-- Pantalla de Selección de Usuario -->
+        <div id="user-selection-screen" class="screen">
+            <div class="card selection-box">
+                <div class="card-header">
+                    <h2 class="greeting">¡Hola! 👋</h2>
+                    <p class="instruction">Selecciona tu nombre para participar</p>
+                </div>
+                <div id="user-list" class="user-list"></div>
+            </div>
+        </div>
+
+        <!-- Pantalla de la Bolsa -->
+        <div id="bag-screen" class="screen">
+            <div class="card bag-container">
+                <h2 id="user-greeting" class="user-greeting"></h2>
+                <p class="bag-instruction">Haz clic en la bolsa mágica</p>
+                
+                <div class="bag-wrapper">
+                    <div id="magic-bag" class="bag">
+                        <div class="bag-glow"></div>
+                        <div class="bag-body">
+                            <div class="sparkle"></div>
+                            <div class="sparkle"></div>
+                            <div class="sparkle"></div>
+                            <span class="bag-icon">🎁</span>
+                        </div>
+                        <div class="bag-tie"></div>
+                    </div>
+                </div>
+
+                <div id="result-container" class="result-container hidden">
+                    <div class="confetti-container"></div>
+                    <div class="result-card">
+                        <div class="trophy-icon">🎉</div>
+                        <h3>¡Tu Amigo Secreto es!</h3>
+                        <div id="selected-name" class="selected-name"></div>
+                        <p class="result-message">¡Prepara un regalo inolvidable!</p>
+                        <div class="countdown">
+                            <p>Cerrando sesión en <span id="countdown">10</span>s</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
