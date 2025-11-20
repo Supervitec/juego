@@ -1,6 +1,9 @@
 // ============================================
-// LISTA DE PARTICIPANTES
+// CONFIGURACIÓN DE MONGODB
 // ============================================
+const API_URL = 'https://juego-roan.vercel.app/'; 
+
+// LISTA DE PARTICIPANTES
 const PARTICIPANTS = [
     "Carlos Rodríguez",
     "María García",
@@ -14,7 +17,6 @@ const PARTICIPANTS = [
 
 const VALID_EMAIL = "supervitecapp@gmail.com";
 const VALID_PASSWORD = "supervitec123";
-const DB_KEY = "amigo_secreto_data";
 
 // Elementos del DOM
 const loginScreen = document.getElementById('login-screen');
@@ -27,47 +29,85 @@ const magicBag = document.getElementById('magic-bag');
 const resultContainer = document.getElementById('result-container');
 const selectedNameEl = document.getElementById('selected-name');
 const userGreeting = document.getElementById('user-greeting');
+const loadingOverlay = document.getElementById('loading');
 
 let currentUser = null;
 let countdownInterval = null;
 
 // ============================================
-// FUNCIONES DE BASE DE DATOS (localStorage)
+// FUNCIONES DE API
 // ============================================
 
-function initDatabase() {
-    let data = localStorage.getItem(DB_KEY);
-    if (!data) {
-        const initialData = {
-            availableNames: [...PARTICIPANTS],
-            assignments: {}
-        };
-        localStorage.setItem(DB_KEY, JSON.stringify(initialData));
-        console.log('✅ Base de datos inicializada');
+function showLoading(show = true) {
+    if (show) {
+        loadingOverlay.classList.remove('hidden');
+    } else {
+        loadingOverlay.classList.add('hidden');
     }
 }
 
-function getDatabase() {
-    const data = localStorage.getItem(DB_KEY);
-    return data ? JSON.parse(data) : null;
+async function initDatabase() {
+    try {
+        const response = await fetch(`${API_URL}/init`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ participants: PARTICIPANTS })
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Error al inicializar:', error);
+        return null;
+    }
 }
 
-function saveDatabase(data) {
-    localStorage.setItem(DB_KEY, JSON.stringify(data));
+async function getGameData() {
+    try {
+        const response = await fetch(`${API_URL}/game`);
+        return await response.json();
+    } catch (error) {
+        console.error('Error al obtener datos:', error);
+        return null;
+    }
+}
+
+async function assignName(username) {
+    try {
+        const response = await fetch(`${API_URL}/assign`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username })
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Error al asignar nombre:', error);
+        return null;
+    }
+}
+
+async function getAllAssignments() {
+    try {
+        const response = await fetch(`${API_URL}/assignments`);
+        return await response.json();
+    } catch (error) {
+        console.error('Error al obtener asignaciones:', error);
+        return null;
+    }
 }
 
 // ============================================
 // LOGIN
 // ============================================
 
-loginForm.addEventListener('submit', (e) => {
+loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
 
     if (email === VALID_EMAIL && password === VALID_PASSWORD) {
         loginError.textContent = '';
-        initDatabase();
+        showLoading(true);
+        await initDatabase();
+        showLoading(false);
         showUserSelection();
     } else {
         loginError.textContent = '❌ Credenciales incorrectas';
@@ -78,11 +118,19 @@ loginForm.addEventListener('submit', (e) => {
 // SELECCIÓN DE USUARIO
 // ============================================
 
-function showUserSelection() {
+async function showUserSelection() {
     loginScreen.classList.remove('active');
     userSelectionScreen.classList.add('active');
     
-    const data = getDatabase();
+    showLoading(true);
+    const data = await getGameData();
+    showLoading(false);
+    
+    if (!data) {
+        alert('Error al cargar los datos');
+        return;
+    }
+    
     userList.innerHTML = '';
     
     PARTICIPANTS.forEach(name => {
@@ -90,7 +138,6 @@ function showUserSelection() {
         btn.className = 'user-btn';
         btn.textContent = name;
         
-        // Verificar si el usuario ya participó
         if (data.assignments && data.assignments[name]) {
             btn.textContent = name + ' ✓';
             btn.style.opacity = '0.5';
@@ -107,15 +154,6 @@ function showUserSelection() {
 }
 
 function selectUser(name) {
-    const data = getDatabase();
-    
-    // Verificar nuevamente si ya participó
-    if (data.assignments && data.assignments[name]) {
-        alert('Ya participaste en el sorteo.');
-        showUserSelection();
-        return;
-    }
-    
     currentUser = name;
     userSelectionScreen.classList.remove('active');
     bagScreen.classList.add('active');
@@ -127,48 +165,44 @@ function selectUser(name) {
 // SORTEO
 // ============================================
 
-magicBag.addEventListener('click', () => {
-    const data = getDatabase();
+magicBag.addEventListener('click', async () => {
+    showLoading(true);
+    const data = await getGameData();
+    showLoading(false);
     
-    // Verificar si ya participó
+    if (!data) {
+        alert('Error al cargar los datos');
+        return;
+    }
+    
     if (data.assignments[currentUser]) {
         alert('Ya participaste. Tu nombre ya fue asignado.');
         return;
     }
 
-    // Verificar si hay nombres disponibles
     if (!data.availableNames || data.availableNames.length === 0) {
         alert('Todos los nombres ya fueron asignados.');
         return;
     }
 
-    // Animar la bolsa
     magicBag.classList.add('shake');
-    setTimeout(() => {
+    setTimeout(async () => {
         magicBag.classList.remove('shake');
-        drawName();
+        await drawName();
     }, 500);
 });
 
-function drawName() {
-    const data = getDatabase();
-    let availableForUser = data.availableNames.filter(name => name !== currentUser);
+async function drawName() {
+    showLoading(true);
+    const result = await assignName(currentUser);
+    showLoading(false);
     
-    if (availableForUser.length === 0) {
-        alert('No hay nombres disponibles para ti.');
+    if (!result || result.error) {
+        alert(result?.error || 'Error al asignar nombre');
         return;
     }
-
-    // Seleccionar nombre aleatorio
-    const randomIndex = Math.floor(Math.random() * availableForUser.length);
-    const drawnName = availableForUser[randomIndex];
-
-    // Actualizar base de datos
-    data.assignments[currentUser] = drawnName;
-    data.availableNames = data.availableNames.filter(name => name !== drawnName);
     
-    saveDatabase(data);
-    showResult(drawnName);
+    showResult(result.assignedTo);
 }
 
 // ============================================
@@ -212,18 +246,10 @@ function logout() {
 }
 
 // ============================================
-// FUNCIÓN DE RESETEO (SOLO PARA TESTING)
+// FUNCIÓN PARA VER TODAS LAS ASIGNACIONES
 // ============================================
 
-function resetDatabase() {
-    const initialData = {
-        availableNames: [...PARTICIPANTS],
-        assignments: {}
-    };
-    localStorage.setItem(DB_KEY, JSON.stringify(initialData));
-    console.log('✅ Base de datos reseteada');
-    alert('Base de datos reseteada correctamente');
+async function verAsignaciones() {
+    const data = await getAllAssignments();
+    console.table(data);
 }
-
-// Inicializar al cargar
-initDatabase();
