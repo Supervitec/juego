@@ -140,9 +140,6 @@ app.post('/api/assign', ensureConnection, async (req, res) => {
       return res.json({ error: 'El juego no está inicializado' });
     }
 
-    if (game.assignments[username]) {
-      return res.json({ error: 'Ya participaste' });
-    }
     const availableForUser = game.availableNames.filter(name => name !== username);
 
     if (availableForUser.length === 0) {
