@@ -5,11 +5,9 @@ const { MongoClient } = require('mongodb');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// MongoDB URI
 const MONGODB_URI = 'mongodb+srv://juego:amigosecreto@cluster0.bbxbqvp.mongodb.net/?appName=Cluster0';
 const DATABASE_NAME = 'amigoSecreto';
 const COLLECTION_NAME = 'game';
@@ -17,10 +15,8 @@ const COLLECTION_NAME = 'game';
 let db;
 let isConnected = false;
 
-// Conectar a MongoDB
 async function connectDB() {
     if (isConnected) return;
-    
     try {
         const client = await MongoClient.connect(MONGODB_URI, {
             useNewUrlParser: true,
@@ -35,24 +31,18 @@ async function connectDB() {
     }
 }
 
-// Middleware para verificar conexión
 async function ensureConnection(req, res, next) {
     if (!isConnected) {
         await connectDB();
     }
-    
     if (!isConnected) {
         return res.status(500).json({ error: 'No se pudo conectar a la base de datos' });
     }
-    
     next();
 }
 
-// ============================================
-// RUTAS DE LA API
-// ============================================
+// === RUTAS DE LA API ===
 
-// Ruta de prueba
 app.get('/api', (req, res) => {
     res.json({ 
         message: 'API de Amigo Secreto funcionando',
@@ -61,14 +51,11 @@ app.get('/api', (req, res) => {
     });
 });
 
-// Inicializar juego
 app.post('/api/init', ensureConnection, async (req, res) => {
     try {
         const { participants } = req.body;
         const collection = db.collection(COLLECTION_NAME);
-        
         const existing = await collection.findOne({ _id: 'game' });
-        
         if (!existing) {
             await collection.insertOne({
                 _id: 'game',
@@ -77,7 +64,6 @@ app.post('/api/init', ensureConnection, async (req, res) => {
             });
             console.log('✅ Juego inicializado');
         }
-        
         res.json({ success: true });
     } catch (error) {
         console.error('Error al inicializar:', error);
@@ -85,7 +71,6 @@ app.post('/api/init', ensureConnection, async (req, res) => {
     }
 });
 
-// Obtener datos del juego
 app.get('/api/game', ensureConnection, async (req, res) => {
     try {
         const collection = db.collection(COLLECTION_NAME);
@@ -97,43 +82,24 @@ app.get('/api/game', ensureConnection, async (req, res) => {
     }
 });
 
-// Asignar nombre
 app.post('/api/assign', ensureConnection, async (req, res) => {
     try {
         const { username } = req.body;
         const collection = db.collection(COLLECTION_NAME);
-        
         const game = await collection.findOne({ _id: 'game' });
-        
-        if (!game) {
-            return res.json({ error: 'El juego no está inicializado' });
-        }
-        
-        if (game.assignments[username]) {
-            return res.json({ error: 'Ya participaste' });
-        }
-        
+        if (!game) return res.json({ error: 'El juego no está inicializado' });
+        if (game.assignments[username]) return res.json({ error: 'Ya participaste' });
         let availableForUser = game.availableNames.filter(name => name !== username);
-        
-        if (availableForUser.length === 0) {
-            return res.json({ error: 'No hay nombres disponibles' });
-        }
-        
+        if (availableForUser.length === 0) return res.json({ error: 'No hay nombres disponibles' });
         const randomIndex = Math.floor(Math.random() * availableForUser.length);
         const assignedTo = availableForUser[randomIndex];
-        
         await collection.updateOne(
             { _id: 'game' },
             {
-                $set: {
-                    [`assignments.${username}`]: assignedTo
-                },
-                $pull: {
-                    availableNames: assignedTo
-                }
+                $set: { [`assignments.${username}`]: assignedTo },
+                $pull: { availableNames: assignedTo }
             }
         );
-        
         console.log(`✅ ${username} -> ${assignedTo}`);
         res.json({ success: true, assignedTo });
     } catch (error) {
@@ -142,7 +108,6 @@ app.post('/api/assign', ensureConnection, async (req, res) => {
     }
 });
 
-// Ver todas las asignaciones
 app.get('/api/assignments', ensureConnection, async (req, res) => {
     try {
         const collection = db.collection(COLLECTION_NAME);
@@ -154,12 +119,10 @@ app.get('/api/assignments', ensureConnection, async (req, res) => {
     }
 });
 
-// Resetear juego 
 app.post('/api/reset', ensureConnection, async (req, res) => {
     try {
         const { participants } = req.body;
         const collection = db.collection(COLLECTION_NAME);
-        
         await collection.updateOne(
             { _id: 'game' },
             {
@@ -170,7 +133,6 @@ app.post('/api/reset', ensureConnection, async (req, res) => {
             },
             { upsert: true }
         );
-        
         console.log('✅ Juego reseteado');
         res.json({ success: true });
     } catch (error) {
@@ -179,11 +141,5 @@ app.post('/api/reset', ensureConnection, async (req, res) => {
     }
 });
 
-// Inicializar conexión
-connectDB();
-
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-});
 
 module.exports = app;
