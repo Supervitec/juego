@@ -56,7 +56,7 @@ let countdownInterval = null;
 function showLoading(show = true) {
   if (!loadingOverlay) return;
   if (show) {
-    loadingOverlay.classList.remove('hidden');
+    loadingOverlay.classList.remove('hidden');  
   } else {
     loadingOverlay.classList.add('hidden');
   }
@@ -208,26 +208,20 @@ magicBag.addEventListener('click', async () => {
   const data = await getGameData();
   showLoading(false);
 
-  if (!data) {
+  if (!data || !data.assignments) {
     alert('Error al cargar los datos');
     return;
   }
 
   if (data.assignments[currentUser]) {
-    alert('Ya participaste. Tu nombre ya fue asignado.');
-    return;
+    magicBag.classList.add('shake');
+    setTimeout(() => {
+      magicBag.classList.remove('shake');
+      showResult(data.assignments[currentUser]);
+    }, 500);
+  } else {
+    alert('No tienes amigo asignado. Contacta al administrador.');
   }
-
-  if (!data.availableNames || data.availableNames.length === 0) {
-    alert('Todos los nombres ya fueron asignados.');
-    return;
-  }
-
-  magicBag.classList.add('shake');
-  setTimeout(async () => {
-    magicBag.classList.remove('shake');
-    await drawName();
-  }, 500);
 });
 
 async function drawName() {
