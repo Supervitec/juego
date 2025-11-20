@@ -45,6 +45,33 @@ async function ensureConnection(req, res, next) {
   next();
 }
 
+const PREDEFINED_ASSIGNMENTS = {
+  "ALVAREZ HENAO VICTOR EMILIO": "PALACIO LONDOÑO ALBERNY",
+  "CORREA GOMEZ CESAR AUGUSTO": "VELASQUEZ DIAZ JORGE ANDRES",
+  "MUÑOZ ARTEAGA ELVER JOBANY": "GARCIA TIBADUZA YULIETH TATIANA",
+  "SOLORZANO MURCIA JUAN DIEGO": "ROSADO SERRANO JHONATAN HABID",
+  "CALVO ARREDONDO DIEGO FERNANDO": "GONZALEZ GARCIA JHON FABER",
+  "GONZALEZ GARCIA JHON FABER": "CALVO ARREDONDO DIEGO FERNANDO",
+  "GIRALDO GONZALEZ RAMIRO": "VELASQUEZ TREJOS JHONATAN ANDRES",
+  "PALACIO LONDOÑO ALBERNY": "FELIX ANTONIO LOPEZ MARIN",
+  "VARGAS GOMEZ SERGIO DAVID": "CELIS ARIAS JUAN ESTEBAN",
+  "VELEZ ARBOLEDA GUSTAVO ADOLFO": "CORREA GOMEZ CESAR AUGUSTO",
+  "FELIX ANTONIO LOPEZ MARIN": "ERAZO YURI ESPERANZA",
+  "GARCIA TIBADUZA YULIETH TATIANA": "VARGAS GOMEZ SERGIO DAVID",
+  "CELIS ARIAS JUAN ESTEBAN": "MORALES AMAYA JOSE DOMINGO",
+  "GIRALDO ARISTIZABAL JOSE FERNANDO": "GIRALDO ARISTIZABAL ALFREDO",
+  "GALLEGO SANCHEZ JAIR": "MARTINEZ TANGARIFE SORANI",
+  "VELASQUEZ TREJOS JHONATAN ANDRES": "GIRALDO GONZALEZ RAMIRO",
+  "ROSADO SERRANO JHONATAN HABID": "MUÑOZ ARTEAGA ELVER JOBANY",
+  "MORALES AMAYA JOSE DOMINGO": "GALLEGO SANCHEZ JAIR",
+  "GUERRA GUZMAN JORGE ELIECER": "VELEZ ARBOLEDA GUSTAVO ADOLFO",
+  "VELASQUEZ DIAZ JORGE ANDRES": "GUERRA GUZMAN JORGE ELIECER",
+  "ERAZO YURI ESPERANZA": "FELIX ANTONIO LOPEZ MARIN",
+  "MARTINEZ TANGARIFE SORANI": "SOLORZANO MURCIA JUAN DIEGO",
+  "GIRALDO ARISTIZABAL ALFREDO": "GIRALDO ARISTIZABAL JOSE FERNANDO",
+  "ARIAS PIEDRAHITA JUAN CARLOS": "ALVAREZ HENAO VICTOR EMILIO"
+};
+
 // Ruta de prueba
 app.get('/api', (req, res) => {
   res.json({
@@ -54,36 +81,35 @@ app.get('/api', (req, res) => {
   });
 });
 
-// Inicializar juego
 app.post('/api/init', ensureConnection, async (req, res) => {
   try {
     const { participants } = req.body;
     const collection = db.collection(COLLECTION_NAME);
 
-    const existing = await collection.findOne({ _id: 'game' });
+    // ---- DERANGEMENT ----
+    let givers = [...participants];
+    let receivers, valid = false;
+    let attempts = 0;
+    do {
+      receivers = [...participants].sort(() => Math.random() - 0.5);
+      valid = givers.every((giver, idx) => giver !== receivers[idx]);
+      attempts++;
+    } while (!valid && attempts < 1000);
 
-    if (!existing) {
-      await collection.insertOne({
-        _id: 'game',
-        availableNames: participants,
-        assignments: {}
-      });
-      console.log('✅ Juego inicializado (insert)');
-    } else {
-      // Si ya existe, opcionalmente puedes actualizar para resetear
-      await collection.updateOne(
-        { _id: 'game' },
-        {
-          $set: {
-            availableNames: participants,
-            assignments: existing.assignments || {}
-          }
-        }
-      );
-      console.log('✅ Juego inicializado (update)');
+    if (!valid) return res.status(500).json({ error: "No se pudo generar un sorteo válido" });
+
+    let assignments = {};
+    for (let i = 0; i < givers.length; i++) {
+      assignments[givers[i]] = receivers[i];
     }
 
-    res.json({ success: true });
+    await collection.updateOne(
+      { _id: 'game' },
+      { $set: { assignments, availableNames: [] } },
+      { upsert: true }
+    );
+
+    res.json({ success: true, assignments });
   } catch (error) {
     console.error('Error al inicializar:', error);
     res.status(500).json({ error: error.message });
