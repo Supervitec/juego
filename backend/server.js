@@ -9,27 +9,60 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// **IMPORTANTE**: Reemplaza con tu connection string
+// MongoDB URI
 const MONGODB_URI = 'mongodb+srv://juego:amigosecreto@cluster0.bbxbqvp.mongodb.net/?appName=Cluster0';
 const DATABASE_NAME = 'amigoSecreto';
 const COLLECTION_NAME = 'game';
 
 let db;
+let isConnected = false;
 
 // Conectar a MongoDB
-MongoClient.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(client => {
+async function connectDB() {
+    if (isConnected) return;
+    
+    try {
+        const client = await MongoClient.connect(MONGODB_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
         console.log('✅ Conectado a MongoDB');
         db = client.db(DATABASE_NAME);
-    })
-    .catch(error => console.error('❌ Error de conexión:', error));
+        isConnected = true;
+    } catch (error) {
+        console.error('❌ Error de conexión a MongoDB:', error);
+        isConnected = false;
+    }
+}
+
+// Middleware para verificar conexión
+async function ensureConnection(req, res, next) {
+    if (!isConnected) {
+        await connectDB();
+    }
+    
+    if (!isConnected) {
+        return res.status(500).json({ error: 'No se pudo conectar a la base de datos' });
+    }
+    
+    next();
+}
 
 // ============================================
 // RUTAS DE LA API
 // ============================================
 
+// Ruta de prueba
+app.get('/api', (req, res) => {
+    res.json({ 
+        message: 'API de Amigo Secreto funcionando',
+        status: 'online',
+        mongoConnected: isConnected
+    });
+});
+
 // Inicializar juego
-app.post('/api/init', async (req, res) => {
+app.post('/api/init', ensureConnection, async (req, res) => {
     try {
         const { participants } = req.body;
         const collection = db.collection(COLLECTION_NAME);
@@ -42,32 +75,39 @@ app.post('/api/init', async (req, res) => {
                 availableNames: participants,
                 assignments: {}
             });
+            console.log('✅ Juego inicializado');
         }
         
         res.json({ success: true });
     } catch (error) {
+        console.error('Error al inicializar:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
 // Obtener datos del juego
-app.get('/api/game', async (req, res) => {
+app.get('/api/game', ensureConnection, async (req, res) => {
     try {
         const collection = db.collection(COLLECTION_NAME);
         const game = await collection.findOne({ _id: 'game' });
         res.json(game || { availableNames: [], assignments: {} });
     } catch (error) {
+        console.error('Error al obtener datos:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
 // Asignar nombre
-app.post('/api/assign', async (req, res) => {
+app.post('/api/assign', ensureConnection, async (req, res) => {
     try {
         const { username } = req.body;
         const collection = db.collection(COLLECTION_NAME);
         
         const game = await collection.findOne({ _id: 'game' });
+        
+        if (!game) {
+            return res.json({ error: 'El juego no está inicializado' });
+        }
         
         if (game.assignments[username]) {
             return res.json({ error: 'Ya participaste' });
@@ -94,25 +134,28 @@ app.post('/api/assign', async (req, res) => {
             }
         );
         
+        console.log(`✅ ${username} -> ${assignedTo}`);
         res.json({ success: true, assignedTo });
     } catch (error) {
+        console.error('Error al asignar:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
 // Ver todas las asignaciones
-app.get('/api/assignments', async (req, res) => {
+app.get('/api/assignments', ensureConnection, async (req, res) => {
     try {
         const collection = db.collection(COLLECTION_NAME);
         const game = await collection.findOne({ _id: 'game' });
         res.json(game?.assignments || {});
     } catch (error) {
+        console.error('Error al obtener asignaciones:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
 // Resetear juego
-app.post('/api/reset', async (req, res) => {
+app.post('/api/reset', ensureConnection, async (req, res) => {
     try {
         const { participants } = req.body;
         const collection = db.collection(COLLECTION_NAME);
@@ -128,12 +171,19 @@ app.post('/api/reset', async (req, res) => {
             { upsert: true }
         );
         
+        console.log('✅ Juego reseteado');
         res.json({ success: true });
     } catch (error) {
+        console.error('Error al resetear:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
+// Inicializar conexión
+connectDB();
+
 app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
 });
+
+module.exports = app;
