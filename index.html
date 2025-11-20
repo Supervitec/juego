@@ -3,85 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎁 Amigo Secreto - Supervitec</title>
+    <title>Amigo Secreto - Supervitec</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="animated-bg">
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-    </div>
-
-    <div class="container">
-        <!-- Pantalla de Login -->
+    <div class="app-container">
+        <!-- Login Screen -->
         <div id="login-screen" class="screen active">
-            <div class="card login-box">
-                <div class="card-header">
-                    <div class="gift-icon">🎁</div>
-                    <h1 class="title">Amigo Secreto</h1>
-                    <p class="subtitle">¡Bienvenido a la magia navideña!</p>
-                </div>
-                <form id="login-form">
-                    <div class="input-wrapper">
-                        <label>📧 Correo Electrónico</label>
-                        <input type="email" id="email" placeholder="tu@email.com" required>
+            <div class="content-wrapper">
+                <div class="brand-header">
+                    <div class="logo-container">
+                        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 7H16L14 2H10L8 7H4L2 22H22L20 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M9 14H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
                     </div>
-                    <div class="input-wrapper">
-                        <label>🔒 Contraseña</label>
-                        <input type="password" id="password" placeholder="••••••••" required>
-                    </div>
-                    <button type="submit" class="btn-primary">
-                        <span>Iniciar Sesión</span>
-                        <span class="btn-arrow">→</span>
-                    </button>
-                </form>
-                <div id="login-error" class="error-message"></div>
-            </div>
-        </div>
-
-        <!-- Pantalla de Selección de Usuario -->
-        <div id="user-selection-screen" class="screen">
-            <div class="card selection-box">
-                <div class="card-header">
-                    <h2 class="greeting">¡Hola! 👋</h2>
-                    <p class="instruction">Selecciona tu nombre para participar</p>
+                    <h1 class="brand-title">Amigo Secreto</h1>
+                    <p class="brand-subtitle">Sistema de intercambio de regalos</p>
                 </div>
-                <div id="user-list" class="user-list"></div>
-            </div>
-        </div>
 
-        <!-- Pantalla de la Bolsa -->
-        <div id="bag-screen" class="screen">
-            <div class="card bag-container">
-                <h2 id="user-greeting" class="user-greeting"></h2>
-                <p class="bag-instruction">Haz clic en la bolsa mágica</p>
-                
-                <div class="bag-wrapper">
-                    <div id="magic-bag" class="bag">
-                        <div class="bag-glow"></div>
-                        <div class="bag-body">
-                            <div class="sparkle"></div>
-                            <div class="sparkle"></div>
-                            <div class="sparkle"></div>
-                            <span class="bag-icon">🎁</span>
+                <div class="card-modern">
+                    <form id="login-form" class="form-container">
+                        <div class="form-group">
+                            <label class="form-label">Correo Electrónico</label>
+                            <div class="input-container">
+                                <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                                    <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M22 6L12 13L2 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <input type="email" id="email" placeholder="tu@email.com" required>
+                            </div>
                         </div>
-                        <div class="bag-tie"></div>
+
+                        <div class="form-group">
+                            <label class="form-label">Contraseña</label>
+                            <div class="input-container">
+                                <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M7 11V7C7 4.79086 8.79086 3 11 3H13C15.2091 3 17 4.79086 17 7V11" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                                <input type="password" id="password" placeholder="••••••••••" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-modern btn-primary">
+                            <span>Iniciar Sesión</span>
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none">
+                                <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </form>
+                    <div id="login-error" class="error-message"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Selection Screen -->
+        <div id="user-selection-screen" class="screen">
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <h2 class="page-title">Selecciona tu Perfil</h2>
+                    <p class="page-description">Elige tu nombre para participar en el intercambio</p>
+                </div>
+                <div id="user-list" class="grid-container"></div>
+            </div>
+        </div>
+
+        <!-- Bag Screen -->
+        <div id="bag-screen" class="screen">
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <h2 id="user-greeting" class="page-title"></h2>
+                    <p class="page-description">Haz clic en el regalo para descubrir tu amigo secreto</p>
+                </div>
+
+                <div class="gift-section">
+                    <div id="magic-bag" class="gift-box">
+                        <div class="gift-wrapper">
+                            <div class="gift-top"></div>
+                            <div class="gift-body">
+                                <div class="ribbon ribbon-v"></div>
+                                <div class="ribbon ribbon-h"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div id="result-container" class="result-container hidden">
-                    <div class="confetti-container"></div>
-                    <div class="result-card">
-                        <div class="trophy-icon">🎉</div>
-                        <h3>¡Tu Amigo Secreto es!</h3>
-                        <div id="selected-name" class="selected-name"></div>
-                        <p class="result-message">¡Prepara un regalo inolvidable!</p>
-                        <div class="countdown">
-                            <p>Cerrando sesión en <span id="countdown">10</span>s</p>
+                <div id="result-container" class="result-section hidden">
+                    <div class="result-card-modern">
+                        <div class="success-icon">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.7088 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M22 4L12 14.01L9 11.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <h3 class="result-title">Tu Amigo Secreto es</h3>
+                        <div id="selected-name" class="result-name"></div>
+                        <p class="result-text">Prepara un regalo especial para esta persona</p>
+                        <div class="countdown-container">
+                            <p>Cerrando sesión en <span id="countdown" class="countdown-number">10</span> segundos</p>
                         </div>
                     </div>
                 </div>
@@ -89,6 +113,9 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

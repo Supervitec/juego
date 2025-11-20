@@ -1,3 +1,6 @@
+// ============================================
+// LISTA DE PARTICIPANTES
+// ============================================
 const PARTICIPANTS = [
     "Carlos Rodríguez",
     "María García",
@@ -11,27 +14,9 @@ const PARTICIPANTS = [
 
 const VALID_EMAIL = "supervitecapp@gmail.com";
 const VALID_PASSWORD = "supervitec123";
-const DB_KEY = "amigo_secreto_db";
+const DB_KEY = "amigo_secreto_data";
 
-function initDB() {
-    let db = localStorage.getItem(DB_KEY);
-    if (!db) {
-        const initialDB = {
-            availableNames: [...PARTICIPANTS],
-            assignments: {}
-        };
-        localStorage.setItem(DB_KEY, JSON.stringify(initialDB));
-    }
-}
-
-function getDB() {
-    return JSON.parse(localStorage.getItem(DB_KEY));
-}
-
-function saveDB(db) {
-    localStorage.setItem(DB_KEY, JSON.stringify(db));
-}
-
+// Elementos del DOM
 const loginScreen = document.getElementById('login-screen');
 const userSelectionScreen = document.getElementById('user-selection-screen');
 const bagScreen = document.getElementById('bag-screen');
@@ -46,7 +31,34 @@ const userGreeting = document.getElementById('user-greeting');
 let currentUser = null;
 let countdownInterval = null;
 
-initDB();
+// ============================================
+// FUNCIONES DE BASE DE DATOS (localStorage)
+// ============================================
+
+function initDatabase() {
+    let data = localStorage.getItem(DB_KEY);
+    if (!data) {
+        const initialData = {
+            availableNames: [...PARTICIPANTS],
+            assignments: {}
+        };
+        localStorage.setItem(DB_KEY, JSON.stringify(initialData));
+        console.log('✅ Base de datos inicializada');
+    }
+}
+
+function getDatabase() {
+    const data = localStorage.getItem(DB_KEY);
+    return data ? JSON.parse(data) : null;
+}
+
+function saveDatabase(data) {
+    localStorage.setItem(DB_KEY, JSON.stringify(data));
+}
+
+// ============================================
+// LOGIN
+// ============================================
 
 loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -55,78 +67,117 @@ loginForm.addEventListener('submit', (e) => {
 
     if (email === VALID_EMAIL && password === VALID_PASSWORD) {
         loginError.textContent = '';
+        initDatabase();
         showUserSelection();
     } else {
-        loginError.textContent = '❌ Correo o contraseña incorrectos';
+        loginError.textContent = '❌ Credenciales incorrectas';
     }
 });
+
+// ============================================
+// SELECCIÓN DE USUARIO
+// ============================================
 
 function showUserSelection() {
     loginScreen.classList.remove('active');
     userSelectionScreen.classList.add('active');
     
+    const data = getDatabase();
     userList.innerHTML = '';
+    
     PARTICIPANTS.forEach(name => {
         const btn = document.createElement('button');
         btn.className = 'user-btn';
         btn.textContent = name;
-        btn.onclick = () => selectUser(name);
+        
+        // Verificar si el usuario ya participó
+        if (data.assignments && data.assignments[name]) {
+            btn.textContent = name + ' ✓';
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+            btn.onclick = () => {
+                alert('Este usuario ya participó en el sorteo.');
+            };
+        } else {
+            btn.onclick = () => selectUser(name);
+        }
+        
         userList.appendChild(btn);
     });
 }
 
 function selectUser(name) {
+    const data = getDatabase();
+    
+    // Verificar nuevamente si ya participó
+    if (data.assignments && data.assignments[name]) {
+        alert('Ya participaste en el sorteo.');
+        showUserSelection();
+        return;
+    }
+    
     currentUser = name;
     userSelectionScreen.classList.remove('active');
     bagScreen.classList.add('active');
-    userGreeting.textContent = `¡Hola, ${name}! 🎅`;
+    userGreeting.textContent = `Hola, ${name}`;
     resultContainer.classList.add('hidden');
 }
 
+// ============================================
+// SORTEO
+// ============================================
+
 magicBag.addEventListener('click', () => {
-    const db = getDB();
+    const data = getDatabase();
     
-    if (db.assignments[currentUser]) {
-        alert('¡Ya participaste! Tu nombre ya fue asignado.');
+    // Verificar si ya participó
+    if (data.assignments[currentUser]) {
+        alert('Ya participaste. Tu nombre ya fue asignado.');
         return;
     }
 
-    if (db.availableNames.length === 0) {
-        alert('¡Todos los nombres ya fueron asignados!');
+    // Verificar si hay nombres disponibles
+    if (!data.availableNames || data.availableNames.length === 0) {
+        alert('Todos los nombres ya fueron asignados.');
         return;
     }
 
+    // Animar la bolsa
     magicBag.classList.add('shake');
     setTimeout(() => {
         magicBag.classList.remove('shake');
         drawName();
-    }, 600);
+    }, 500);
 });
 
 function drawName() {
-    const db = getDB();
-    let availableForUser = db.availableNames.filter(name => name !== currentUser);
+    const data = getDatabase();
+    let availableForUser = data.availableNames.filter(name => name !== currentUser);
     
     if (availableForUser.length === 0) {
         alert('No hay nombres disponibles para ti.');
         return;
     }
 
+    // Seleccionar nombre aleatorio
     const randomIndex = Math.floor(Math.random() * availableForUser.length);
     const drawnName = availableForUser[randomIndex];
 
-    db.assignments[currentUser] = drawnName;
-    db.availableNames = db.availableNames.filter(name => name !== drawnName);
-    saveDB(db);
-
+    // Actualizar base de datos
+    data.assignments[currentUser] = drawnName;
+    data.availableNames = data.availableNames.filter(name => name !== drawnName);
+    
+    saveDatabase(data);
     showResult(drawnName);
 }
+
+// ============================================
+// RESULTADO
+// ============================================
 
 function showResult(name) {
     selectedNameEl.textContent = name;
     resultContainer.classList.remove('hidden');
-    
-    createConfetti();
     startCountdown();
 }
 
@@ -149,45 +200,6 @@ function startCountdown() {
     }, 1000);
 }
 
-function createConfetti() {
-    const confettiContainer = document.querySelector('.confetti-container');
-    confettiContainer.innerHTML = '';
-    const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#ffd700', '#ff69b4', '#4facfe', '#43e97b'];
-    
-    for (let i = 0; i < 80; i++) {
-        const confetti = document.createElement('div');
-        confetti.style.position = 'absolute';
-        confetti.style.width = Math.random() * 15 + 5 + 'px';
-        confetti.style.height = confetti.style.width;
-        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        confetti.style.left = Math.random() * 100 + '%';
-        confetti.style.top = '-20px';
-        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
-        confetti.style.opacity = Math.random() * 0.5 + 0.5;
-        
-        confettiContainer.appendChild(confetti);
-        
-        const duration = Math.random() * 2 + 2;
-        const rotation = Math.random() * 720 - 360;
-        
-        confetti.animate([
-            { 
-                transform: 'translateY(0) rotate(0deg)', 
-                opacity: 1 
-            },
-            { 
-                transform: `translateY(${window.innerHeight + 50}px) rotate(${rotation}deg)`, 
-                opacity: 0 
-            }
-        ], {
-            duration: duration * 1000,
-            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-        });
-        
-        setTimeout(() => confetti.remove(), duration * 1000);
-    }
-}
-
 function logout() {
     if (countdownInterval) {
         clearInterval(countdownInterval);
@@ -199,9 +211,19 @@ function logout() {
     document.getElementById('password').value = '';
 }
 
-function resetDB() {
-    localStorage.removeItem(DB_KEY);
-    initDB();
+// ============================================
+// FUNCIÓN DE RESETEO (SOLO PARA TESTING)
+// ============================================
+
+function resetDatabase() {
+    const initialData = {
+        availableNames: [...PARTICIPANTS],
+        assignments: {}
+    };
+    localStorage.setItem(DB_KEY, JSON.stringify(initialData));
     console.log('✅ Base de datos reseteada');
     alert('Base de datos reseteada correctamente');
 }
+
+// Inicializar al cargar
+initDatabase();
