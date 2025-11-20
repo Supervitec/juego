@@ -178,7 +178,7 @@ async function showUserSelection() {
   btn.textContent = name;
   btn.onclick = () => selectUser(name);
   userList.appendChild(btn);
-});
+})};
  
 
 function selectUser(name) {
