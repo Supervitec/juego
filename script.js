@@ -15,6 +15,7 @@ const PARTICIPANTS = [
     "Sofia Torres"
 ];
 
+
 const VALID_EMAIL = "supervitecapp@gmail.com";
 const VALID_PASSWORD = "supervitec123";
 
