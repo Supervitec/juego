@@ -154,7 +154,7 @@ app.get('/api/assignments', ensureConnection, async (req, res) => {
     }
 });
 
-// Resetear juego
+// Resetear juego 
 app.post('/api/reset', ensureConnection, async (req, res) => {
     try {
         const { participants } = req.body;
