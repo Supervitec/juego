@@ -173,24 +173,13 @@ async function showUserSelection() {
   userList.innerHTML = '';
 
   PARTICIPANTS.forEach(name => {
-    const btn = document.createElement('button');
-    btn.className = 'user-btn';
-    btn.textContent = name;
-
-    if (data.assignments && data.assignments[name]) {
-      btn.textContent = name + ' ✓';
-      btn.style.opacity = '0.5';
-      btn.style.cursor = 'not-allowed';
-      btn.onclick = () => {
-        alert('Este usuario ya participó en el sorteo.');
-      };
-    } else {
-      btn.onclick = () => selectUser(name);
-    }
-
-    userList.appendChild(btn);
-  });
-}
+  const btn = document.createElement('button');
+  btn.className = 'user-btn';
+  btn.textContent = name;
+  btn.onclick = () => selectUser(name);
+  userList.appendChild(btn);
+});
+ 
 
 function selectUser(name) {
   currentUser = name;
