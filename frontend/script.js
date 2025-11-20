@@ -194,23 +194,15 @@ function selectUser(name) {
 // ============================================
 magicBag.addEventListener('click', async () => {
   showLoading(true);
-  const data = await getGameData();
+  const result = await assignName(currentUser);
   showLoading(false);
 
-  if (!data || !data.assignments) {
-    alert('Error al cargar los datos');
+  if (!result || result.error) {
+    alert(result?.error || 'Error al asignar nombre');
     return;
   }
 
-  if (data.assignments[currentUser]) {
-    magicBag.classList.add('shake');
-    setTimeout(() => {
-      magicBag.classList.remove('shake');
-      showResult(data.assignments[currentUser]);
-    }, 500);
-  } else {
-    alert('No tienes amigo asignado. Contacta al administrador.');
-  }
+  showResult(result.assignedTo);
 });
 
 async function drawName() {
