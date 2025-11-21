@@ -137,17 +137,7 @@ loginForm.addEventListener('submit', async (e) => {
 
   if (email === VALID_EMAIL && password === VALID_PASSWORD) {
     loginError.textContent = '';
-    showLoading(true);
-
-    const result = await initDatabase();
-
     showLoading(false);
-
-    if (!result || result.error) {
-      alert(result?.error || 'No se pudo inicializar el juego');
-      return;
-    }
-
     showUserSelection();
   } else {
     loginError.textContent = '❌ Credenciales incorrectas';
