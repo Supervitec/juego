@@ -71,7 +71,6 @@ app.post('/api/init', ensureConnection, async (req, res) => {
   }
 });
 
-// Sorteo seguro: nadie se saca a sí mismo y sin repeticiones
 app.post('/api/assign', ensureConnection, async (req, res) => {
   try {
     const { username } = req.body;
