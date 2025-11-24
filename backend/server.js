@@ -52,7 +52,6 @@ app.get('/api', (req, res) => {
   });
 });
 
-// Inicializar la bolsa de nombres y limpiar asignaciones
 app.post('/api/init', ensureConnection, async (req, res) => {
   try {
     const { participants } = req.body;
